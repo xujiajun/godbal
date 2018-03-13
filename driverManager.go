@@ -2,6 +2,7 @@ package godbal
 
 import "github.com/xujiajun/godbal/driver/mysql"
 
+// DriveManager records drivers
 type DriveManager struct {
 	drivers map[string]string
 }

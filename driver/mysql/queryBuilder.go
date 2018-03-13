@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// The query types.
 const (
 	SELECT = iota
 	DELETE
@@ -14,6 +15,7 @@ const (
 	INSERT
 )
 
+// The query flags.
 const (
 	ISSORT    = "isSort"
 	ISJOIN    = "isJoin"
