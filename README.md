@@ -1,2 +1,2 @@
-# godbal  [![GoDoc](https://godoc.org/github.com/xujiajun/godbal/driver/mysql?status.svg)](https://godoc.org/github.com/xujiajun/godbal/driver/mysql) [![Go Report Card](https://goreportcard.com/badge/github.com/xujiajun/godbal)](https://goreportcard.com/report/github.com/xujiajun/godbal)
+# godbal  [![GoDoc](https://godoc.org/github.com/xujiajun/godbal/driver/mysql?status.svg)](https://godoc.org/github.com/xujiajun/godbal/driver/mysql) [![Go Report Card](https://goreportcard.com/badge/github.com/xujiajun/godbal)](https://goreportcard.com/report/github.com/xujiajun/godbal)  <a href="https://travis-ci.org/xujiajun/godbal"><img src="https://travis-ci.org/xujiajun/godbal.svg?branch=master" alt="Build Status"></a>
 Database Abstraction Layer (dbal) for go
