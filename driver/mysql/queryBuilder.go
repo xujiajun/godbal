@@ -441,17 +441,34 @@ func (queryBuilder *QueryBuilder) Query() (map[int]map[string]string, error) {
 
 // prepareAndExecute creates a prepared statement for later queries or executions.
 func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
-	stmt, err := queryBuilder.database.Prepare(queryBuilder.GetSQL())
-	if err != nil {
-		panic(err)
+
+	if Tx := queryBuilder.database.transaction; Tx != nil {
+		stmt, err := Tx.Prepare(queryBuilder.GetSQL())
+		if err != nil {
+			panic(err)
+		}
+		res, err := stmt.Exec(queryBuilder.params...)
+		if err != nil {
+			panic(err)
+		}
+
+		return res
 	}
 
-	res, err := stmt.Exec(queryBuilder.params...)
-	if err != nil {
-		panic(err)
+	if queryBuilder.database.transaction == nil {
+		stmt, err := queryBuilder.database.Prepare(queryBuilder.GetSQL())
+		if err != nil {
+			panic(err)
+		}
+
+		res, err := stmt.Exec(queryBuilder.params...)
+		if err != nil {
+			panic(err)
+		}
+		return res
 	}
 
-	return res
+	return nil
 }
 
 // PrepareAndExecute creates a prepared statement for later queries or executions.

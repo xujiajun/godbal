@@ -95,6 +95,11 @@ func (database *Database) Begin() (*Database, error) {
 	return database, err
 }
 
+// GetTx returns database transaction
+func (database *Database) GetTx() *sql.Tx {
+	return database.transaction
+}
+
 // Rollback aborts the transaction.
 func (database *Database) Rollback() {
 	err := database.transaction.Rollback()
