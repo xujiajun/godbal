@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	connection, err := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+	database, err := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
 	if err != nil {
 		panic(err)
 	}
 
-	queryBuilder := mysql.NewQueryBuilder(connection)
+	queryBuilder := mysql.NewQueryBuilder(database)
 	rows, _ := queryBuilder.Select("uid,username,price,flag").From("userinfo", "").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").Query()
 
