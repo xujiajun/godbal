@@ -23,6 +23,7 @@ const (
 	RIGHT     = "RIGHT"
 )
 
+//QueryBuilder defined a SQL query builder.
 type QueryBuilder struct {
 	firstResult int
 	maxResults  int
@@ -48,6 +49,7 @@ var sqlParts = map[string]interface{}{
 
 var params = []interface{}{}
 
+// NewQueryBuilder returns a newly initialized QueryBuilder that implements QueryBuilder
 func NewQueryBuilder(database *Database) *QueryBuilder {
 	return &QueryBuilder{
 		firstResult: 0,
@@ -60,6 +62,7 @@ func NewQueryBuilder(database *Database) *QueryBuilder {
 	}
 }
 
+// Select returns QueryBuilder that Specifies an item that is to be returned in the query result.
 func (queryBuilder *QueryBuilder) Select(value interface{}) *QueryBuilder {
 	queryBuilder.queryType = SELECT
 	queryBuilder.sqlParts["select"] = value
@@ -67,12 +70,16 @@ func (queryBuilder *QueryBuilder) Select(value interface{}) *QueryBuilder {
 	return queryBuilder
 }
 
+// From returns QueryBuilder that creates and adds a query root corresponding to the table identified by the
+// given alias, forming a cartesian product with any existing query roots.
 func (queryBuilder *QueryBuilder) From(table string, alias string) *QueryBuilder {
 	queryBuilder.setFromWrap(table, alias)
 
 	return queryBuilder
 }
 
+// Update returns QueryBuilder that turns the query being built into a bulk update query that ranges over
+//a certain table
 func (queryBuilder *QueryBuilder) Update(table string, alias string) *QueryBuilder {
 	queryBuilder.queryType = UPDATE
 	queryBuilder.setFromWrap(table, alias)
@@ -80,12 +87,14 @@ func (queryBuilder *QueryBuilder) Update(table string, alias string) *QueryBuild
 	return queryBuilder
 }
 
+// Set returns QueryBuilder that sets a new value for a column in a bulk update query.
 func (queryBuilder *QueryBuilder) Set(key string, val string) *QueryBuilder {
 	queryBuilder.sqlParts["set"].(map[string]string)[key] = val
 
 	return queryBuilder
 }
 
+// OrderBy returns QueryBuilder that specifies an ordering for the query results.
 func (queryBuilder *QueryBuilder) OrderBy(sort string, order string) *QueryBuilder {
 
 	queryBuilder.flag = ISSORT
@@ -98,6 +107,7 @@ func (queryBuilder *QueryBuilder) OrderBy(sort string, order string) *QueryBuild
 	return queryBuilder
 }
 
+// GroupBy returns QueryBuilder that specifies a grouping over the results of the query.
 func (queryBuilder *QueryBuilder) GroupBy(groupBy string) *QueryBuilder {
 	if groupBy == "" {
 		return queryBuilder
@@ -108,28 +118,33 @@ func (queryBuilder *QueryBuilder) GroupBy(groupBy string) *QueryBuilder {
 	return queryBuilder
 }
 
+// Having returns QueryBuilder that specifies a restriction over the groups of the query.
 func (queryBuilder *QueryBuilder) Having(having string) *QueryBuilder {
 	queryBuilder.sqlParts["having"] = having
 
 	return queryBuilder
 }
 
+// SetFirstResult returns QueryBuilder that sets the position of the first result to retrieve.
 func (queryBuilder *QueryBuilder) SetFirstResult(firstResult int) *QueryBuilder {
 	queryBuilder.firstResult = firstResult
 
 	return queryBuilder
 }
 
+// Where returns QueryBuilder that specifies one or more restrictions to the query result.
 func (queryBuilder *QueryBuilder) Where(condition string) *QueryBuilder {
 	queryBuilder.sqlParts["where"] = condition
 
 	return queryBuilder
 }
 
+// Join returns QueryBuilder that creates and adds a join to the query.
 func (queryBuilder *QueryBuilder) Join(join string, alias string, condition string) *QueryBuilder {
 	return queryBuilder.InnerJoin(join, alias, condition)
 }
 
+// wrapJoin returns QueryBuilder that wraps a join to the query.
 func (queryBuilder *QueryBuilder) wrapJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.flag = ISJOIN
 	queryBuilder.sqlParts["join"].(map[string]string)["joinTable"] = join
@@ -139,6 +154,7 @@ func (queryBuilder *QueryBuilder) wrapJoin(join string, alias string, condition 
 	return queryBuilder
 }
 
+// InnerJoin returns QueryBuilder that creates and adds a join to the query.
 func (queryBuilder *QueryBuilder) InnerJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.sqlParts["join"].(map[string]string)["joinType"] = INNER
 	queryBuilder.wrapJoin(join, alias, condition)
@@ -146,6 +162,7 @@ func (queryBuilder *QueryBuilder) InnerJoin(join string, alias string, condition
 	return queryBuilder
 }
 
+// LeftJoin returns QueryBuilder that creates and adds a left join to the query.
 func (queryBuilder *QueryBuilder) LeftJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.sqlParts["join"].(map[string]string)["joinType"] = LEFT
 	queryBuilder.wrapJoin(join, alias, condition)
@@ -153,6 +170,7 @@ func (queryBuilder *QueryBuilder) LeftJoin(join string, alias string, condition 
 	return queryBuilder
 }
 
+// RightJoin returns QueryBuilder that creates and adds a right join to the query.
 func (queryBuilder *QueryBuilder) RightJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.sqlParts["join"].(map[string]string)["joinType"] = RIGHT
 	queryBuilder.wrapJoin(join, alias, condition)
@@ -160,28 +178,34 @@ func (queryBuilder *QueryBuilder) RightJoin(join string, alias string, condition
 	return queryBuilder
 }
 
+// GetFirstResult gets the position of the first result the query object was set to retrieve.
 func (queryBuilder *QueryBuilder) GetFirstResult() int {
 	return queryBuilder.firstResult
 }
 
+// SetMaxResults sets the maximum number of results to retrieve.
 func (queryBuilder *QueryBuilder) SetMaxResults(maxResults int) *QueryBuilder {
 	queryBuilder.maxResults = maxResults
 	return queryBuilder
 }
 
-func (queryBuilder *QueryBuilder) getMaxResults() int {
+// GetMaxResults gets the maximum number of results the query object was set to retrieve
+func (queryBuilder *QueryBuilder) GetMaxResults() int {
 	return queryBuilder.maxResults
 }
 
+// SetParameter sets a query parameter for the query being constructed.
 func (queryBuilder *QueryBuilder) SetParameter(param interface{}) *QueryBuilder {
 	queryBuilder.params = append(queryBuilder.params, param)
 	return queryBuilder
 }
 
+// GetParameter gets all defined query parameters for the query being constructed indexed by parameter index or name.
 func (queryBuilder *QueryBuilder) GetParameter() []interface{} {
 	return queryBuilder.params
 }
 
+// GetSQL gets the complete SQL string formed by the current specifications of this QueryBuilder.
 func (queryBuilder *QueryBuilder) GetSQL() string {
 	sql := ""
 	queryType := queryBuilder.queryType
@@ -206,6 +230,7 @@ func (queryBuilder *QueryBuilder) GetSQL() string {
 	return sql
 }
 
+// setMapWrap returns wrap sqlParts `set`
 func (queryBuilder *QueryBuilder) setMapWrap(sql string) string {
 	setMap := queryBuilder.sqlParts["set"].(map[string]string)
 
@@ -217,6 +242,7 @@ func (queryBuilder *QueryBuilder) setMapWrap(sql string) string {
 	return sql
 }
 
+// getSQLForUpdate returns an update string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForUpdate() string {
 	sql := "UPDATE "
 
@@ -235,6 +261,7 @@ func (queryBuilder *QueryBuilder) getSQLForUpdate() string {
 	return sql
 }
 
+// getSQLForJoins returns an join string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForJoins() string {
 	sql := ""
 
@@ -252,6 +279,7 @@ func (queryBuilder *QueryBuilder) getSQLForJoins() string {
 	return sql
 }
 
+// getFromClauses returns table or join sql string
 func (queryBuilder *QueryBuilder) getFromClauses() string {
 	tableSql := ""
 
@@ -262,6 +290,7 @@ func (queryBuilder *QueryBuilder) getFromClauses() string {
 	return tableSql + queryBuilder.getSQLForJoins()
 }
 
+// getSQLForSelect returns an select string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForSelect() string {
 	sql := "SELECT "
 
@@ -300,6 +329,7 @@ func (queryBuilder *QueryBuilder) getSQLForSelect() string {
 	return sql
 }
 
+// getSQLForDelete returns an delete string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForDelete() string {
 	sql := "DELETE "
 
@@ -318,6 +348,7 @@ func (queryBuilder *QueryBuilder) getSQLForDelete() string {
 	return sql
 }
 
+// getSQLForInsert returns an insert string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 	sql := "INSERT INTO "
 	if fromMap := queryBuilder.sqlParts["from"].(map[string]string); fromMap != nil {
@@ -331,10 +362,12 @@ func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 	return sql
 }
 
+// isLimitQuery returns is a limited Query
 func (queryBuilder *QueryBuilder) isLimitQuery() bool {
 	return queryBuilder.maxResults >= -1 || queryBuilder.firstResult >= 0
 }
 
+// executeQuery executes a query that returns rows
 func (queryBuilder *QueryBuilder) executeQuery(query string) (map[int]map[string]string, error) {
 	if queryBuilder.params != nil {
 		rows, err := queryBuilder.database.Query(query, queryBuilder.params...)
@@ -347,6 +380,7 @@ func (queryBuilder *QueryBuilder) executeQuery(query string) (map[int]map[string
 	return getRowsMap(rows), err
 }
 
+// getRowsMap returns rows map
 func getRowsMap(rows *sql.Rows) map[int]map[string]string {
 	columns, _ := rows.Columns()
 	count := len(columns)
@@ -395,6 +429,7 @@ func getRowsMap(rows *sql.Rows) map[int]map[string]string {
 	return result
 }
 
+// Query executes a query that returns rows
 func (queryBuilder *QueryBuilder) Query() (map[int]map[string]string, error) {
 	if queryBuilder.queryType == SELECT {
 		return queryBuilder.executeQuery(queryBuilder.GetSQL())
@@ -402,6 +437,7 @@ func (queryBuilder *QueryBuilder) Query() (map[int]map[string]string, error) {
 	return nil, nil
 }
 
+// prepareAndExecute creates a prepared statement for later queries or executions.
 func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
 	stmt, err := queryBuilder.database.Prepare(queryBuilder.GetSQL())
 	if err != nil {
@@ -416,6 +452,7 @@ func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
 	return res
 }
 
+// PrepareAndExecute creates a prepared statement for later queries or executions.
 func (queryBuilder *QueryBuilder) PrepareAndExecute() (int64, error) {
 	if queryBuilder.queryType == INSERT {
 		res := queryBuilder.prepareAndExecute()
@@ -435,6 +472,7 @@ func (queryBuilder *QueryBuilder) PrepareAndExecute() (int64, error) {
 	return -1, nil
 }
 
+// Insert turns the query being built into an insert query that inserts into
 func (queryBuilder *QueryBuilder) Insert(table string) *QueryBuilder {
 	queryBuilder.queryType = INSERT
 	queryBuilder.setFromWrap(table, "")
@@ -442,6 +480,7 @@ func (queryBuilder *QueryBuilder) Insert(table string) *QueryBuilder {
 	return queryBuilder
 }
 
+// Delete turns the query being built into a bulk delete query that ranges over
 func (queryBuilder *QueryBuilder) Delete(table string) *QueryBuilder {
 	queryBuilder.queryType = DELETE
 	queryBuilder.setFromWrap(table, "")
@@ -449,6 +488,7 @@ func (queryBuilder *QueryBuilder) Delete(table string) *QueryBuilder {
 	return queryBuilder
 }
 
+// setFromWrap wraps sqlParts `from`
 func (queryBuilder *QueryBuilder) setFromWrap(table string, alias string) {
 	queryBuilder.sqlParts["from"] = map[string]string{
 		"table": table,

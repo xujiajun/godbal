@@ -23,10 +23,8 @@ func main() {
 	//fmt.Print(queryBuilder2.GetSQL())
 
 	rows, _ := queryBuilder2.Query()
-	fmt.Print(ToJson(rows))
-}
 
-func ToJson(rows map[int]map[string]string) string {
 	jsonString, _ := json.Marshal(&rows)
-	return string(jsonString)
+
+	fmt.Print(string(jsonString))
 }
