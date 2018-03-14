@@ -22,7 +22,7 @@ func main() {
 	fmt.Print("\n")
 	queryBuilder2 := mysql.NewQueryBuilder(database)
 	sql := queryBuilder2.Select("uid,username,created,textVal,price,name").From("userinfo", "").Where("username = ? AND departname = ?").
-		SetParameter("johnny2").SetParameter("tec").SetFirstResult(0).
+		SetParam("johnny2").SetParam("tec").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
 
 	fmt.Print(sql)
@@ -30,7 +30,7 @@ func main() {
 
 	queryBuilder3 := mysql.NewQueryBuilder(database)
 	rows2, _ := queryBuilder3.Select("uid,username,created,textVal,price,name").From("userinfo", "").Where("username = ? AND departname = ?").
-		SetParameter("johnny2").SetParameter("tec").SetFirstResult(0).
+		SetParam("johnny2").SetParam("tec").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").Query()
 
 	jsonString2, _ := json.Marshal(&rows2)

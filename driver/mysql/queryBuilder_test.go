@@ -149,7 +149,7 @@ func TestQueryBuilder_GetSQL(t *testing.T) {
 	queryBuilder := mysql.NewQueryBuilder(database)
 
 	sql := queryBuilder.Select("uid,username,created,textVal,price,name").From("userinfo", "").Where("username = ? AND departname = ?").
-		SetParameter("johnny2").SetParameter("tec").SetFirstResult(0).
+		SetParam("johnny2").SetParam("tec").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
 
 	expectedSql := "SELECT uid,username,created,textVal,price,name FROM userinfo WHERE username = ? AND departname = ? ORDER BY uid DESC LIMIT 0,3"
@@ -191,10 +191,10 @@ func TestQueryBuilder_Transaction(t *testing.T) {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	sql := queryBuilder.Update("userinfo", "u").Set("u.username", "?").Where("u.uid=?").
-		SetParameter("xujiajun").SetParameter(1).GetSQL()
+	sql := queryBuilder.Update("userinfo", "u").Set("u.username", "johnny").Where("u.uid=?").
+		SetParam(1).GetSQL()
 
-	expectedSql := "UPDATE userinfo u SET u.username=? WHERE u.uid=?"
+	expectedSql := "UPDATE userinfo u SET u.username = ?  WHERE u.uid=?"
 
 	if sql != expectedSql {
 		t.Errorf("returned unexpected sql: got %v want %v",
@@ -267,7 +267,7 @@ func TestQueryBuilder_Delete(t *testing.T) {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	sql := queryBuilder.Delete("userinfo").Where("uid=?").SetParameter(7).GetSQL()
+	sql := queryBuilder.Delete("userinfo").Where("uid=?").SetParam(7).GetSQL()
 
 	expectedSql := "DELETE  FROM userinfo WHERE uid=?"
 

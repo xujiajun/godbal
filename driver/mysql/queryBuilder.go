@@ -205,8 +205,8 @@ func (queryBuilder *QueryBuilder) GetMaxResults() int {
 	return queryBuilder.maxResults
 }
 
-// SetParameter sets a query parameter for the query being constructed.
-func (queryBuilder *QueryBuilder) SetParameter(param interface{}) *QueryBuilder {
+// SetParam sets a query parameter for the query being constructed.
+func (queryBuilder *QueryBuilder) SetParam(param interface{}) *QueryBuilder {
 	queryBuilder.params = append(queryBuilder.params, param)
 	return queryBuilder
 }
@@ -241,29 +241,39 @@ func (queryBuilder *QueryBuilder) GetSQL() string {
 	return sql
 }
 
-// setMapWrap returns wrap sqlParts `set`
-func (queryBuilder *QueryBuilder) setMapWrap(sql string) string {
-	setMap := queryBuilder.sqlParts["set"].(map[string]string)
-
-	for k, v := range setMap {
-		sql += k + "=" + v + ","
-	}
-
-	sql = sql[:len(sql)-1]
-	return sql
-}
-
 // getSQLForUpdate returns an update string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForUpdate() string {
 	sql := "UPDATE "
 
 	fromMap := queryBuilder.sqlParts["from"].(map[string]string)
 
+	setMap := queryBuilder.sqlParts["set"].(map[string]string)
+
+	sortedKeys := make([]string, 0)
+
+	for k, _ := range setMap {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+
 	table := fromMap["table"] + " " + fromMap["alias"]
 
 	sql += table + " SET "
 
-	sql = queryBuilder.setMapWrap(sql)
+	paramsTemp := make([]interface{}, 0)
+
+	for _, k := range sortedKeys {
+		sql += k + " = ? ,"
+		paramsTemp = append(paramsTemp, setMap[k])
+	}
+
+	for _, v := range queryBuilder.params {
+		paramsTemp = append(paramsTemp, v)
+	}
+
+	queryBuilder.params = paramsTemp
+
+	sql = sql[:len(sql)-1]
 
 	if whereStr := queryBuilder.sqlParts["where"].(string); whereStr != "" {
 		sql += " WHERE " + whereStr
@@ -369,6 +379,7 @@ func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 
 		tableSql := fromMap["table"]
 		sql += tableSql + " ("
+
 		valuesMap := queryBuilder.sqlParts["values"].(map[string]string)
 
 		sortedKeys := make([]string, 0)
