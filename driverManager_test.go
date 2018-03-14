@@ -11,7 +11,7 @@ const (
 )
 
 func TestNewMysql(t *testing.T) {
-	connection := godbal.NewMysql("")
+	database := godbal.NewMysql("")
 	db, _, err := sqlmock.New()
 
 	if err != nil {
@@ -20,7 +20,7 @@ func TestNewMysql(t *testing.T) {
 
 	defer db.Close()
 
-	connection.SetDB(db)
+	database.SetDB(db)
 }
 
 func TestNewDriveManager(t *testing.T) {
@@ -38,7 +38,7 @@ func TestNewDriveManager(t *testing.T) {
 
 func TestDriveManager_GetMysqlConnection(t *testing.T) {
 	newDriveManager := godbal.NewDriveManager()
-	mysqlConnection := newDriveManager.GetMysqlDB("")
+	mysqlDB := newDriveManager.GetMysqlDB("")
 
 	db, _, err := sqlmock.New()
 
@@ -48,5 +48,5 @@ func TestDriveManager_GetMysqlConnection(t *testing.T) {
 
 	defer db.Close()
 
-	mysqlConnection.SetDB(db)
+	mysqlDB.SetDB(db)
 }

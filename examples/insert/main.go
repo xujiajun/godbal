@@ -11,8 +11,8 @@ func main() {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	id, _ := queryBuilder.Insert("userinfo").Set("username", "?").Set("departname", "?").Set("created", "?").
-		SetParameter("johnny3").SetParameter("tec5").SetParameter("12312312").PrepareAndExecute()
+	sql := queryBuilder.Insert("userinfo").Value("username", "johnny").Value("departname", "tec").Value("created", "1521010136").GetSQL()
 
-	fmt.Print(id)
+	fmt.Print(sql)
+	queryBuilder.PrepareAndExecute()
 }

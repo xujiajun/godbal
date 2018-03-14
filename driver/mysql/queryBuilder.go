@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	//"sort"
+	"sort"
 )
 
 // The query types.
@@ -92,6 +94,13 @@ func (queryBuilder *QueryBuilder) Update(table string, alias string) *QueryBuild
 // Set returns QueryBuilder that sets a new value for a column in a bulk update query.
 func (queryBuilder *QueryBuilder) Set(key string, val string) *QueryBuilder {
 	queryBuilder.sqlParts["set"].(map[string]string)[key] = val
+
+	return queryBuilder
+}
+
+// Value returns QueryBuilder that sets a new value for a column in a bulk insert query.
+func (queryBuilder *QueryBuilder) Value(key string, val string) *QueryBuilder {
+	queryBuilder.sqlParts["values"].(map[string]string)[key] = val
 
 	return queryBuilder
 }
@@ -286,7 +295,10 @@ func (queryBuilder *QueryBuilder) getFromClauses() string {
 	tableSql := ""
 
 	if fromMap := queryBuilder.sqlParts["from"].(map[string]string); fromMap != nil {
-		tableSql = fromMap["table"] + " " + fromMap["alias"]
+
+		if tableSql = fromMap["table"]; fromMap["alias"] != "" {
+			tableSql += " " + fromMap["alias"]
+		}
 	}
 
 	return tableSql + queryBuilder.getSQLForJoins()
@@ -354,9 +366,33 @@ func (queryBuilder *QueryBuilder) getSQLForDelete() string {
 func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 	sql := "INSERT INTO "
 	if fromMap := queryBuilder.sqlParts["from"].(map[string]string); fromMap != nil {
+
 		tableSql := fromMap["table"]
-		sql += tableSql + " SET "
-		sql = queryBuilder.setMapWrap(sql)
+		sql += tableSql + " ("
+		valuesMap := queryBuilder.sqlParts["values"].(map[string]string)
+
+		sortedKeys := make([]string, 0)
+
+		for k, _ := range valuesMap {
+			sortedKeys = append(sortedKeys, k)
+		}
+		sort.Strings(sortedKeys)
+
+		values := ""
+
+		params := make([]interface{}, 0)
+
+		for _, k := range sortedKeys {
+			sql += k + ","
+			values += "?,"
+			params = append(params, valuesMap[k])
+		}
+
+		queryBuilder.params = params
+
+		sql = sql[:len(sql)-1]
+		values = values[:len(values)-1]
+		sql += ") VALUES(" + values + ")"
 
 		return sql
 	}
@@ -366,7 +402,13 @@ func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 
 // isLimitQuery returns is a limited Query
 func (queryBuilder *QueryBuilder) isLimitQuery() bool {
-	return queryBuilder.maxResults >= -1 || queryBuilder.firstResult >= 0
+	if queryBuilder.maxResults == -1 {
+		return false
+	}
+	if queryBuilder.maxResults > 0 && queryBuilder.firstResult >= 0 {
+		return true
+	}
+	return false
 }
 
 // executeQuery executes a query that returns rows
@@ -411,9 +453,8 @@ func getRowsMap(rows *sql.Rows) map[int]map[string]string {
 				v = str
 			} else {
 				v = val
-
 				switch v.(type) {
-				case int64:
+				case int, int8, int16, int32, int64:
 					res := strings.Split(fmt.Sprintf("%s", v), "=")
 					resTmp := res[1]
 

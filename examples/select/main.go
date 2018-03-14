@@ -19,7 +19,7 @@ func main() {
 
 	jsonString, _ := json.Marshal(&rows)
 	fmt.Print(string(jsonString))
-
+	fmt.Print("\n")
 	queryBuilder2 := mysql.NewQueryBuilder(database)
 	sql := queryBuilder2.Select("uid,username,created,textVal,price,name").From("userinfo", "").Where("username = ? AND departname = ?").
 		SetParameter("johnny2").SetParameter("tec").SetFirstResult(0).
