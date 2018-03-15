@@ -14,7 +14,7 @@ func main() {
 	sql := queryBuilder.Insert("userinfo").Value("username", "johnny").Value("departname", "tec").Value("created", "1521010136").GetSQL()
 
 	fmt.Print(sql)
-	lastInsertId,err := queryBuilder.PrepareAndExecute()
+	lastInsertId, err := queryBuilder.PrepareAndExecute()
 
 	if err != nil {
 		fmt.Print(err)

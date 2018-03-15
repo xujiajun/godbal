@@ -37,7 +37,7 @@ func main() {
 	fmt.Print(string(jsonString2))
 	fmt.Print("\n")
 	queryBuilder3 := mysql.NewQueryBuilder(database)
-	rows3, _ :=queryBuilder3.Select("uid,username,created,textVal,price,name").From("userinfo", "").Where("username = ?").
+	rows3, _ := queryBuilder3.Select("uid,username,created,textVal,price,name").From("userinfo", "").Where("username = ?").
 		SetParam("johnny2").SetFirstResult(0).
 		SetMaxResults(1).OrderBy("uid", "DESC").Query()
 

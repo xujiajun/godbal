@@ -3,9 +3,9 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
-	"sort"
 )
 
 // The query types.
@@ -232,16 +232,12 @@ func (queryBuilder *QueryBuilder) GetSQL() string {
 		sql = queryBuilder.getSQLForInsert()
 	case DELETE:
 		sql = queryBuilder.getSQLForDelete()
-		break
 	case UPDATE:
 		sql = queryBuilder.getSQLForUpdate()
-		break
 	case SELECT:
 		sql = queryBuilder.getSQLForSelect()
-		break
 	default:
 		sql = queryBuilder.getSQLForSelect()
-		break
 	}
 	queryBuilder.sql = sql
 	return sql
