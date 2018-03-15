@@ -26,8 +26,8 @@ func main() {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	rowsAffected, err := queryBuilder.Update("userinfo", "u").Set("u.username", "?").Set("u.departname", "?").Where("u.uid=?").
-		SetParam("joe").SetParam("tecxx").SetParam(4).PrepareAndExecute()
+	rowsAffected, err := queryBuilder.Update("userinfo", "u").Set("u.username", "joe").Set("u.departname", "tecxx").Where("u.uid=?").
+		SetParam(4).PrepareAndExecute()
 
 	if err != nil {
 		log.Fatalln(err)
