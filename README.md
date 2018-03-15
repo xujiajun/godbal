@@ -1,6 +1,9 @@
 # godbal  [![GoDoc](https://godoc.org/github.com/xujiajun/godbal/driver/mysql?status.svg)](https://godoc.org/github.com/xujiajun/godbal/driver/mysql) [![Go Report Card](https://goreportcard.com/badge/github.com/xujiajun/godbal)](https://goreportcard.com/report/github.com/xujiajun/godbal)  <a href="https://travis-ci.org/xujiajun/godbal"><img src="https://travis-ci.org/xujiajun/godbal.svg?branch=master" alt="Build Status"></a> [![Coverage Status](https://coveralls.io/repos/github/xujiajun/godbal/badge.svg?branch=master)](https://coveralls.io/github/xujiajun/godbal?branch=master)  [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://raw.githubusercontent.com/xujiajun/godbal/master/LICENSE)
 Database Abstraction Layer (dbal) for go (now only support mysql)
 
+## Motivation
+
+I wanted a DBAL that ***no ORM***、***no Reflect***, support ***SQL builder***  following good practices and well tested code.
 
 ## Requirements
 
