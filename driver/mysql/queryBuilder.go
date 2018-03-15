@@ -37,6 +37,7 @@ type QueryBuilder struct {
 	database    *Database
 	params      []interface{}
 	flag        string
+	sql         string
 }
 
 var sqlParts = map[string]interface{}{
@@ -63,6 +64,7 @@ func NewQueryBuilder(database *Database) *QueryBuilder {
 		database:    database,
 		params:      params,
 		flag:        ISDEFAULT,
+		sql:         "",
 	}
 }
 
@@ -218,7 +220,12 @@ func (queryBuilder *QueryBuilder) GetParameter() []interface{} {
 
 // GetSQL gets the complete SQL string formed by the current specifications of this QueryBuilder.
 func (queryBuilder *QueryBuilder) GetSQL() string {
-	sql := ""
+	sql := queryBuilder.sql
+
+	if sql != "" {
+		return sql
+	}
+
 	queryType := queryBuilder.queryType
 
 	switch queryType {
@@ -237,7 +244,7 @@ func (queryBuilder *QueryBuilder) GetSQL() string {
 		sql = queryBuilder.getSQLForSelect()
 		break
 	}
-
+	queryBuilder.sql = sql
 	return sql
 }
 
