@@ -30,7 +30,7 @@ func main() {
 		SetParam("johnny2").SetParam("tec").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
 
-	//fmt.Print(sql)
+	fmt.Print(sql)
 	fmt.Print("\n")
 	rows2, _ := queryBuilder2.Query()
 	jsonString2, _ := json.Marshal(&rows2)

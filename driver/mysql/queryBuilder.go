@@ -253,7 +253,7 @@ func (queryBuilder *QueryBuilder) getSQLForUpdate() string {
 
 	sortedKeys := make([]string, 0)
 
-	for k, _ := range setMap {
+	for k := range setMap {
 		sortedKeys = append(sortedKeys, k)
 	}
 	sort.Strings(sortedKeys)
@@ -386,7 +386,7 @@ func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 
 		sortedKeys := make([]string, 0)
 
-		for k, _ := range valuesMap {
+		for k := range valuesMap {
 			sortedKeys = append(sortedKeys, k)
 		}
 		sort.Strings(sortedKeys)
@@ -448,7 +448,7 @@ func getRowsMap(rows *sql.Rows) map[int]map[string]string {
 	resultId := 0
 
 	for rows.Next() {
-		for i, _ := range columns {
+		for i := range columns {
 			columnPointers[i] = &values[i]
 		}
 
