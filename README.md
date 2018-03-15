@@ -16,6 +16,41 @@ go get github.com/xujiajun/godbal
 
 * mysql
 
+## Getting Started
+
+```
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/xujiajun/godbal"
+	"github.com/xujiajun/godbal/driver/mysql"
+)
+
+func main() {
+	database, err := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+	if err != nil {
+		panic(err)
+	}
+
+	queryBuilder := mysql.NewQueryBuilder(database)
+	sql := queryBuilder.Select("uid,username,price,flag").From("userinfo", "").SetFirstResult(0).
+		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
+
+	fmt.Print(sql) // SELECT uid,username,price,flag FROM userinfo ORDER BY uid DESC LIMIT 0,3
+	fmt.Print("\n")
+
+	rows, _ := queryBuilder.Query()
+
+	jsonString, _ := json.Marshal(&rows)
+	fmt.Print(string(jsonString)) 
+  // result like: {"0":{"flag":"1","price":"111.00","uid":"6","username":"johnny2"},"1":{"flag":"1","price":"111.00","uid":"5","username":"johnny2"},"2":{"flag":"0","price":"123.99","uid":"4","username":"joe"}}
+}
+
+```
+
 ## Examples
 
 * [select](https://github.com/xujiajun/godbal/blob/master/examples/select/main.go)
