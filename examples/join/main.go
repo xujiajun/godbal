@@ -21,11 +21,11 @@ func main() {
 	queryBuilder2 = queryBuilder2.Select("u.uid,u.username,p.address").From("userinfo", "u").SetFirstResult(0).
 		SetMaxResults(3).RightJoin("profile", "p", "u.uid = p.uid")
 
-	fmt.Print(queryBuilder2.GetSQL())
+	fmt.Println(queryBuilder2.GetSQL())
 
 	rows, _ := queryBuilder2.Query()
 
 	jsonString, _ := json.Marshal(&rows)
 
-	fmt.Print(string(jsonString))
+	fmt.Println(string(jsonString))
 }

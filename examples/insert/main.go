@@ -20,6 +20,6 @@ func main() {
 	if err != nil {
 		fmt.Print(err)
 	}
-	fmt.Print("\n")
-	fmt.Print(lastInsertId)
+
+	fmt.Println(lastInsertId)
 }

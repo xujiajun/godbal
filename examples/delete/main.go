@@ -14,5 +14,5 @@ func main() {
 
 	affect, _ := queryBuilder.Delete("userinfo").Where("uid=?").SetParam(7).PrepareAndExecute()
 
-	fmt.Print(affect)
+	fmt.Println(affect)
 }

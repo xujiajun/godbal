@@ -13,5 +13,5 @@ func main() {
 
 	rowsAffected, _ := queryBuilder.Update("userinfo", "u").Set("u.username", "joe").Set("u.flag", "0").Where("u.uid=?").
 		SetParam(4).PrepareAndExecute()
-	fmt.Print(rowsAffected)
+	fmt.Println(rowsAffected)
 }

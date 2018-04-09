@@ -30,7 +30,7 @@ const (
 type QueryBuilder struct {
 	firstResult int
 	maxResults  int
-	state       *sql.Stmt
+	State       *sql.Stmt
 	queryType   int
 	sqlParts    map[string]interface{}
 	database    *Database
@@ -425,7 +425,20 @@ func (queryBuilder *QueryBuilder) isLimitQuery() bool {
 }
 
 // executeQuery executes a query that returns rows
-func (queryBuilder *QueryBuilder) executeQuery(query string) (map[int]map[string]string, error) {
+func (queryBuilder *QueryBuilder) executeQuery(query string) (*sql.Rows, error) {
+	if queryBuilder.params != nil {
+		rows, err := queryBuilder.database.Query(query, queryBuilder.params...)
+
+		return rows, err
+	}
+
+	rows, err := queryBuilder.database.Query(query, nil)
+
+	return rows, err
+}
+
+// executeQueryAndGetRowsMap executes a query that returns rows map
+func (queryBuilder *QueryBuilder) executeQueryAndGetRowsMap(query string) (map[int]map[string]string, error) {
 	if queryBuilder.params != nil {
 		rows, err := queryBuilder.database.Query(query, queryBuilder.params...)
 
@@ -486,9 +499,17 @@ func getRowsMap(rows *sql.Rows) map[int]map[string]string {
 }
 
 // Query executes a query that returns rows
-func (queryBuilder *QueryBuilder) Query() (map[int]map[string]string, error) {
+func (queryBuilder *QueryBuilder) Query() (*sql.Rows, error) {
 	if queryBuilder.queryType == SELECT {
 		return queryBuilder.executeQuery(queryBuilder.GetSQL())
+	}
+	return nil, nil
+}
+
+// QueryAndGetMap executes a query that returns rows map
+func (queryBuilder *QueryBuilder) QueryAndGetMap() (map[int]map[string]string, error) {
+	if queryBuilder.queryType == SELECT {
+		return queryBuilder.executeQueryAndGetRowsMap(queryBuilder.GetSQL())
 	}
 	return nil, nil
 }
@@ -498,6 +519,9 @@ func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
 
 	if Tx := queryBuilder.database.transaction; Tx != nil {
 		stmt, err := Tx.Prepare(queryBuilder.GetSQL())
+
+		queryBuilder.State = stmt
+
 		if err != nil {
 			panic(err)
 		}
@@ -514,6 +538,7 @@ func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
 		if err != nil {
 			panic(err)
 		}
+		queryBuilder.State = stmt
 
 		res, err := stmt.Exec(queryBuilder.params...)
 		if err != nil {
