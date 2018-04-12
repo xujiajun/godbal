@@ -26,23 +26,28 @@ const (
 )
 
 type (
-	From struct {
+	// FromSqlParts records table and alias
+	FromSqlParts struct {
 		table, alias string
 	}
 
-	orderBy struct {
+	// orderBySqlParts records sort and order
+	OrderBySqlParts struct {
 		sort, order string
 	}
 
-	joinSqlParts struct {
+	// JoinSqlParts records joinType, joinTable, joinAlias, joinCondition
+	JoinSqlParts struct {
 		joinType, joinTable, joinAlias, joinCondition string
 	}
 
-	valuesSqlParts struct {
+	// ValuesSqlParts records key, val
+	ValuesSqlParts struct {
 		key, val string
 	}
 
-	setSqlParts struct {
+	// SetSqlParts records key, val
+	SetSqlParts struct {
 		key, val string
 	}
 
@@ -52,11 +57,11 @@ type (
 		flag, sql, sqlPartsSelect, sqlPartsWhere, sqlPartsGroupBy, sqlPartsHaving string
 		database                                                                  *Database
 		params                                                                    []interface{}
-		sqlPartsFrom                                                              []From
-		sqlPartsOrderBy                                                           []orderBy
-		sqlPartsValues                                                            []valuesSqlParts
-		sqlPartsSet                                                               []setSqlParts
-		sqlPartsJoin                                                              []joinSqlParts
+		sqlPartsFrom                                                              []FromSqlParts
+		sqlPartsOrderBy                                                           []OrderBySqlParts
+		sqlPartsValues                                                            []ValuesSqlParts
+		sqlPartsSet                                                               []SetSqlParts
+		sqlPartsJoin                                                              []JoinSqlParts
 	}
 )
 
@@ -70,11 +75,11 @@ func NewQueryBuilder(database *Database) *QueryBuilder {
 		params:          []interface{}{},
 		flag:            ISDEFAULT,
 		sql:             "",
-		sqlPartsSet:     make([]setSqlParts, 0),
-		sqlPartsValues:  make([]valuesSqlParts, 0),
-		sqlPartsFrom:    make([]From, 0),
-		sqlPartsOrderBy: make([]orderBy, 0),
-		sqlPartsJoin:    make([]joinSqlParts, 0),
+		sqlPartsSet:     make([]SetSqlParts, 0),
+		sqlPartsValues:  make([]ValuesSqlParts, 0),
+		sqlPartsFrom:    make([]FromSqlParts, 0),
+		sqlPartsOrderBy: make([]OrderBySqlParts, 0),
+		sqlPartsJoin:    make([]JoinSqlParts, 0),
 	}
 }
 
@@ -110,14 +115,14 @@ func (queryBuilder *QueryBuilder) Update(table string, alias string) *QueryBuild
 
 // Set returns QueryBuilder that sets a new value for a column in a bulk update query.
 func (queryBuilder *QueryBuilder) Set(key string, val string) *QueryBuilder {
-	queryBuilder.sqlPartsSet = append(queryBuilder.sqlPartsSet, setSqlParts{key: key, val: val})
+	queryBuilder.sqlPartsSet = append(queryBuilder.sqlPartsSet, SetSqlParts{key: key, val: val})
 
 	return queryBuilder
 }
 
 // Value returns QueryBuilder that sets a new value for a column in a bulk insert query.
 func (queryBuilder *QueryBuilder) Value(key string, val string) *QueryBuilder {
-	queryBuilder.sqlPartsValues = append(queryBuilder.sqlPartsValues, valuesSqlParts{key: key, val: val})
+	queryBuilder.sqlPartsValues = append(queryBuilder.sqlPartsValues, ValuesSqlParts{key: key, val: val})
 
 	return queryBuilder
 }
@@ -130,7 +135,7 @@ func (queryBuilder *QueryBuilder) OrderBy(sort string, order string) *QueryBuild
 		order = "ASC"
 	}
 
-	queryBuilder.sqlPartsOrderBy = append(queryBuilder.sqlPartsOrderBy, orderBy{sort, order})
+	queryBuilder.sqlPartsOrderBy = append(queryBuilder.sqlPartsOrderBy, OrderBySqlParts{sort, order})
 
 	return queryBuilder
 }
@@ -175,7 +180,7 @@ func (queryBuilder *QueryBuilder) Join(join string, alias string, condition stri
 // InnerJoin returns QueryBuilder that creates and adds a join to the query.
 func (queryBuilder *QueryBuilder) InnerJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.flag = ISJOIN
-	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, joinSqlParts{joinType: INNER, joinTable: join, joinAlias: alias, joinCondition: condition})
+	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, JoinSqlParts{joinType: INNER, joinTable: join, joinAlias: alias, joinCondition: condition})
 
 	return queryBuilder
 }
@@ -183,7 +188,7 @@ func (queryBuilder *QueryBuilder) InnerJoin(join string, alias string, condition
 // LeftJoin returns QueryBuilder that creates and adds a left join to the query.
 func (queryBuilder *QueryBuilder) LeftJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.flag = ISJOIN
-	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, joinSqlParts{joinType: LEFT, joinTable: join, joinAlias: alias, joinCondition: condition})
+	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, JoinSqlParts{joinType: LEFT, joinTable: join, joinAlias: alias, joinCondition: condition})
 
 	return queryBuilder
 }
@@ -191,7 +196,7 @@ func (queryBuilder *QueryBuilder) LeftJoin(join string, alias string, condition 
 // RightJoin returns QueryBuilder that creates and adds a right join to the query.
 func (queryBuilder *QueryBuilder) RightJoin(join string, alias string, condition string) *QueryBuilder {
 	queryBuilder.flag = ISJOIN
-	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, joinSqlParts{joinType: RIGHT, joinTable: join, joinAlias: alias, joinCondition: condition})
+	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, JoinSqlParts{joinType: RIGHT, joinTable: join, joinAlias: alias, joinCondition: condition})
 
 	return queryBuilder
 }
@@ -566,5 +571,5 @@ func (queryBuilder *QueryBuilder) Delete(table string) *QueryBuilder {
 
 // setFromWrap wraps sqlParts `from`
 func (queryBuilder *QueryBuilder) setFromWrap(table string, alias string) {
-	queryBuilder.sqlPartsFrom = append(queryBuilder.sqlPartsFrom, From{table, alias})
+	queryBuilder.sqlPartsFrom = append(queryBuilder.sqlPartsFrom, FromSqlParts{table, alias})
 }
