@@ -31,7 +31,7 @@ type (
 		table, alias string
 	}
 
-	// orderBySqlParts records sort and order
+	// OrderBySqlParts records sort and order
 	OrderBySqlParts struct {
 		sort, order string
 	}
