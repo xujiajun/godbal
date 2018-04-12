@@ -11,7 +11,6 @@ func main() {
 	database, _ := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	rowsAffected, _ := queryBuilder.Update("userinfo", "u").Set("u.username", "joe").Set("u.flag", "0").Where("u.uid=?").
-		SetParam(4).PrepareAndExecute()
+	rowsAffected, _ := queryBuilder.Update("userinfo", "u").SetParam(4).Set("u.username", "joe11").Set("u.flag", "1").Where("u.uid=?").PrepareAndExecute()
 	fmt.Println(rowsAffected)
 }

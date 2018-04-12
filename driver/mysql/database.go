@@ -8,11 +8,10 @@ const (
 	driver = "mysql"
 )
 
-// Database records dataSourceName 、db and transaction
+// Database records dataSourceName 、db
 type Database struct {
 	dataSourceName string
 	db             *sql.DB
-	transaction    *sql.Tx
 }
 
 // New returns  a newly initialized Database that implements Database
@@ -84,30 +83,41 @@ func (database *Database) Fetch(sql string, args ...interface{}) *sql.Row {
 	return database.db.QueryRow(sql, args)
 }
 
-// Begin starts a transaction. The default isolation level is dependent on
-// the driver.
-func (database *Database) Begin() (*Database, error) {
-	transaction, err := database.db.Begin()
-
-	database.transaction = transaction
-
-	return database, err
+// Transaction records Tx
+type Transaction struct {
+	Tx *sql.Tx
 }
 
-// GetTx returns database transaction
-func (database *Database) GetTx() *sql.Tx {
-	return database.transaction
+// NewTx returns a newly initialized Transaction that implements Transaction
+func NewTx() *Transaction {
+	return &Transaction{}
+}
+
+// Begin starts a transaction. The default isolation level is dependent on
+// the driver.
+func (database *Database) Begin() (*Transaction, error) {
+	transaction, err := database.db.Begin()
+	tx := NewTx()
+	tx.Tx = transaction
+	return tx, err
 }
 
 // Rollback aborts the transaction.
-func (database *Database) Rollback() {
-	err := database.transaction.Rollback()
-	if err != sql.ErrTxDone && err != nil {
-		panic(err)
-	}
+func (transaction *Transaction) Rollback() error {
+	return transaction.Tx.Rollback()
 }
 
 // Commit commits the transaction.
-func (database *Database) Commit() error {
-	return database.transaction.Commit()
+func (transaction *Transaction) Commit() error {
+	return transaction.Tx.Commit()
+}
+
+// PrepareAndExecute creates a prepared statement for later queries or executions.
+func (transaction *Transaction) PrepareAndExecute(queryBuilder *QueryBuilder) (sql.Result, error) {
+	stmt, err := transaction.Tx.Prepare(queryBuilder.GetSQL())
+
+	if err != nil {
+		panic(err)
+	}
+	return stmt.Exec(queryBuilder.GetParams()...)
 }

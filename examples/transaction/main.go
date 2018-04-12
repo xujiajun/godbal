@@ -17,28 +17,31 @@ func main() {
 
 	defer database.Close()
 
-	_, err := database.Begin()
+	tx, err := database.Begin()
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	defer database.Rollback()
+	defer tx.Rollback()
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	rowsAffected, err := queryBuilder.Update("userinfo", "u").Set("u.username", "joe").Set("u.departname", "tecxx").Where("u.uid=?").
-		SetParam(4).PrepareAndExecute()
+	queryBuilder.Update("userinfo", "u").Set("u.username", "joe").Set("u.departname", "tecxx").Where("u.uid=?").
+		SetParam(4)
+
+
+	res ,err := tx.PrepareAndExecute(queryBuilder)
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Print(rowsAffected)
+	fmt.Print(res.RowsAffected())
 
 	foo()
 
-	if err := database.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		log.Fatalln(err)
 	}
 }

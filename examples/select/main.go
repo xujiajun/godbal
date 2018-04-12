@@ -16,7 +16,7 @@ func main() {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 	sql := queryBuilder.Select("uid,username,price,flag").From("userinfo", "").SetFirstResult(0).
-		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
+		SetMaxResults(5).OrderBy("uid", "DESC").OrderBy("username", "DESC").GetSQL()
 
 	fmt.Println(sql)
 

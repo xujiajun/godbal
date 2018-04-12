@@ -33,7 +33,7 @@ func TestQueryBuilder_Select(t *testing.T) {
 	queryBuilder := mysql.NewQueryBuilder(database)
 	sql := queryBuilder.Select("id, title").From("posts", "").GetSQL()
 
-	expectedSql := "SELECT id, title FROM posts"
+	expectedSql := "SELECT id, title FROM posts "
 
 	if sql != expectedSql {
 		t.Errorf("returned unexpected sql: got %v want %v",
@@ -152,7 +152,7 @@ func TestQueryBuilder_GetSQL(t *testing.T) {
 		SetParam("johnny2").SetParam("tec").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
 
-	expectedSql := "SELECT uid,username,created,textVal,price,name FROM userinfo WHERE username = ? AND departname = ? ORDER BY uid DESC LIMIT 0,3"
+	expectedSql := "SELECT uid,username,created,textVal,price,name FROM userinfo  WHERE username = ? AND departname = ? ORDER BY uid DESC LIMIT 0,3"
 
 	if sql != expectedSql {
 		t.Errorf("returned unexpected sql: got %v want %v",
@@ -168,7 +168,7 @@ func TestQueryBuilder_GetSQL(t *testing.T) {
 	sql = queryBuilder2.Select("u.uid,u.username,p.address,count(*) as num").From("userinfo", "u").SetFirstResult(0).
 		SetMaxResults(3).RightJoin("profile", "p", "u.uid = p.uid").Having("num > 1").GetSQL()
 
-	expectedSql2 := "SELECT u.uid,u.username,p.address,count(*) as num FROM userinfo u RIGHT JOIN profile p ON u.uid = p.uid WHERE username = ? AND departname = ? HAVING num > 1 LIMIT 0,3"
+	expectedSql2 := "SELECT u.uid,u.username,p.address,count(*) as num FROM userinfo u RIGHT JOIN profile p ON u.uid = p.uid HAVING num > 1 LIMIT 0,3"
 	if sql != expectedSql2 {
 		t.Errorf("returned unexpected sql: got %v want %v",
 			sql, expectedSql2)
@@ -205,7 +205,7 @@ func TestQueryBuilder_Transaction(t *testing.T) {
 
 	sql2 := queryBuilder2.Insert("userinfo").Value("username", "johnny3").Value("departname", "tec5").GetSQL()
 
-	expectedSql2 := "INSERT INTO userinfo (departname,username) VALUES(?,?)"
+	expectedSql2 := "INSERT INTO userinfo (username,departname) VALUES(?,?)"
 
 	if sql2 != expectedSql2 {
 		t.Errorf("returned unexpected sql: got %v want %v",
@@ -232,20 +232,20 @@ func TestQueryBuilder_Transaction(t *testing.T) {
 
 	defer database.Close()
 
-	_, err = database.Begin()
+	transaction, err := database.Begin()
 
 	if err != nil {
 		t.Errorf("An error '%s' was not expected while database begin", err)
 	}
 
-	_, err = database.GetTx().Exec(sql, "xujiajun", 1)
-	_, err = database.GetTx().Exec(sql2, "tec", "xxx")
+	_, err = transaction.Tx.Exec(sql, "xujiajun", 1)
+	_, err = transaction.Tx.Exec(sql2, "tec", "xxx")
 
 	if err != nil {
 		return
 	}
 
-	if err := database.Commit(); err != nil {
+	if err := transaction.Commit(); err != nil {
 		return
 	}
 }

@@ -12,7 +12,7 @@ func main() {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	affect, _ := queryBuilder.Delete("userinfo").Where("uid=?").SetParam(7).PrepareAndExecute()
+	affect, _ := queryBuilder.Delete("userinfo").Where("uid=?").SetParam(8).PrepareAndExecute()
 
 	fmt.Println(affect)
 }

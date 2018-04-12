@@ -23,7 +23,7 @@ func main() {
 
 	fmt.Println(queryBuilder2.GetSQL())
 
-	rows, _ := queryBuilder2.Query()
+	rows, _ := queryBuilder2.QueryAndGetMap()
 
 	jsonString, _ := json.Marshal(&rows)
 

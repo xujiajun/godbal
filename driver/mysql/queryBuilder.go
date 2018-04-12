@@ -3,7 +3,6 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -26,51 +25,74 @@ const (
 	RIGHT     = "RIGHT"
 )
 
-//QueryBuilder defined a SQL query builder.
-type QueryBuilder struct {
-	firstResult int
-	maxResults  int
-	State       *sql.Stmt
-	queryType   int
-	sqlParts    map[string]interface{}
-	database    *Database
-	params      []interface{}
-	flag        string
-	sql         string
-}
+type (
+	From struct {
+		table, alias string
+	}
+	orderBy struct {
+		sort, order string
+	}
 
-var sqlParts = map[string]interface{}{
-	"select":  "",
-	"from":    nil,
-	"where":   "",
-	"groupBy": "",
-	"having":  "",
-	"orderBy": map[string]string{},
-	"values":  map[string]string{},
-	"set":     map[string]string{},
-	"join":    map[string]string{},
-}
+	joinSqlParts struct {
+		joinType, joinTable, joinAlias, joinCondition string
+	}
 
-var params = []interface{}{}
+	valuesSqlParts struct {
+		key, val string
+	}
+
+	setSqlParts struct {
+		key, val string
+	}
+
+	//QueryBuilder defined a SQL query builder.
+	QueryBuilder struct {
+		firstResult     int
+		maxResults      int
+		queryType       int
+		database        *Database
+		params          []interface{}
+		flag            string
+		sql             string
+		sqlPartsSelect  string
+		sqlPartsWhere   string
+		sqlPartsFrom    []From
+		sqlPartsGroupBy string
+		sqlPartsHaving  string
+		sqlPartsOrderBy []orderBy
+		sqlPartsValues  []valuesSqlParts
+		sqlPartsSet     []setSqlParts
+		sqlPartsJoin    []joinSqlParts
+	}
+)
 
 // NewQueryBuilder returns a newly initialized QueryBuilder that implements QueryBuilder
 func NewQueryBuilder(database *Database) *QueryBuilder {
 	return &QueryBuilder{
-		firstResult: 0,
-		maxResults:  -1,
-		queryType:   SELECT,
-		sqlParts:    sqlParts,
-		database:    database,
-		params:      params,
-		flag:        ISDEFAULT,
-		sql:         "",
+		firstResult:     0,
+		maxResults:      -1,
+		queryType:       SELECT,
+		database:        database,
+		params:          []interface{}{},
+		flag:            ISDEFAULT,
+		sql:             "",
+		sqlPartsSet:     make([]setSqlParts, 0),
+		sqlPartsValues:  make([]valuesSqlParts, 0),
+		sqlPartsFrom:    make([]From, 0),
+		sqlPartsOrderBy: make([]orderBy, 0),
+		sqlPartsJoin:    make([]joinSqlParts, 0),
 	}
 }
 
+// GetParams returns queryBuilder params
+func (queryBuilder *QueryBuilder) GetParams() []interface{} {
+	return queryBuilder.params
+}
+
 // Select returns QueryBuilder that Specifies an item that is to be returned in the query result.
-func (queryBuilder *QueryBuilder) Select(value interface{}) *QueryBuilder {
+func (queryBuilder *QueryBuilder) Select(value string) *QueryBuilder {
 	queryBuilder.queryType = SELECT
-	queryBuilder.sqlParts["select"] = value
+	queryBuilder.sqlPartsSelect = value
 
 	return queryBuilder
 }
@@ -94,14 +116,14 @@ func (queryBuilder *QueryBuilder) Update(table string, alias string) *QueryBuild
 
 // Set returns QueryBuilder that sets a new value for a column in a bulk update query.
 func (queryBuilder *QueryBuilder) Set(key string, val string) *QueryBuilder {
-	queryBuilder.sqlParts["set"].(map[string]string)[key] = val
+	queryBuilder.sqlPartsSet = append(queryBuilder.sqlPartsSet, setSqlParts{key: key, val: val})
 
 	return queryBuilder
 }
 
 // Value returns QueryBuilder that sets a new value for a column in a bulk insert query.
 func (queryBuilder *QueryBuilder) Value(key string, val string) *QueryBuilder {
-	queryBuilder.sqlParts["values"].(map[string]string)[key] = val
+	queryBuilder.sqlPartsValues = append(queryBuilder.sqlPartsValues, valuesSqlParts{key: key, val: val})
 
 	return queryBuilder
 }
@@ -114,7 +136,7 @@ func (queryBuilder *QueryBuilder) OrderBy(sort string, order string) *QueryBuild
 		order = "ASC"
 	}
 
-	queryBuilder.sqlParts["orderBy"].(map[string]string)[sort] = order
+	queryBuilder.sqlPartsOrderBy = append(queryBuilder.sqlPartsOrderBy, orderBy{sort, order})
 
 	return queryBuilder
 }
@@ -125,14 +147,14 @@ func (queryBuilder *QueryBuilder) GroupBy(groupBy string) *QueryBuilder {
 		return queryBuilder
 	}
 
-	queryBuilder.sqlParts["groupBy"] = groupBy
+	queryBuilder.sqlPartsGroupBy = groupBy
 
 	return queryBuilder
 }
 
 // Having returns QueryBuilder that specifies a restriction over the groups of the query.
 func (queryBuilder *QueryBuilder) Having(having string) *QueryBuilder {
-	queryBuilder.sqlParts["having"] = having
+	queryBuilder.sqlPartsHaving = having
 
 	return queryBuilder
 }
@@ -146,7 +168,7 @@ func (queryBuilder *QueryBuilder) SetFirstResult(firstResult int) *QueryBuilder 
 
 // Where returns QueryBuilder that specifies one or more restrictions to the query result.
 func (queryBuilder *QueryBuilder) Where(condition string) *QueryBuilder {
-	queryBuilder.sqlParts["where"] = condition
+	queryBuilder.sqlPartsWhere = condition
 
 	return queryBuilder
 }
@@ -156,36 +178,26 @@ func (queryBuilder *QueryBuilder) Join(join string, alias string, condition stri
 	return queryBuilder.InnerJoin(join, alias, condition)
 }
 
-// wrapJoin returns QueryBuilder that wraps a join to the query.
-func (queryBuilder *QueryBuilder) wrapJoin(join string, alias string, condition string) *QueryBuilder {
-	queryBuilder.flag = ISJOIN
-	queryBuilder.sqlParts["join"].(map[string]string)["joinTable"] = join
-	queryBuilder.sqlParts["join"].(map[string]string)["joinAlias"] = alias
-	queryBuilder.sqlParts["join"].(map[string]string)["joinCondition"] = condition
-
-	return queryBuilder
-}
-
 // InnerJoin returns QueryBuilder that creates and adds a join to the query.
 func (queryBuilder *QueryBuilder) InnerJoin(join string, alias string, condition string) *QueryBuilder {
-	queryBuilder.sqlParts["join"].(map[string]string)["joinType"] = INNER
-	queryBuilder.wrapJoin(join, alias, condition)
+	queryBuilder.flag = ISJOIN
+	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, joinSqlParts{joinType: INNER, joinTable: join, joinAlias: alias, joinCondition: condition})
 
 	return queryBuilder
 }
 
 // LeftJoin returns QueryBuilder that creates and adds a left join to the query.
 func (queryBuilder *QueryBuilder) LeftJoin(join string, alias string, condition string) *QueryBuilder {
-	queryBuilder.sqlParts["join"].(map[string]string)["joinType"] = LEFT
-	queryBuilder.wrapJoin(join, alias, condition)
+	queryBuilder.flag = ISJOIN
+	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, joinSqlParts{joinType: LEFT, joinTable: join, joinAlias: alias, joinCondition: condition})
 
 	return queryBuilder
 }
 
 // RightJoin returns QueryBuilder that creates and adds a right join to the query.
 func (queryBuilder *QueryBuilder) RightJoin(join string, alias string, condition string) *QueryBuilder {
-	queryBuilder.sqlParts["join"].(map[string]string)["joinType"] = RIGHT
-	queryBuilder.wrapJoin(join, alias, condition)
+	queryBuilder.flag = ISJOIN
+	queryBuilder.sqlPartsJoin = append(queryBuilder.sqlPartsJoin, joinSqlParts{joinType: RIGHT, joinTable: join, joinAlias: alias, joinCondition: condition})
 
 	return queryBuilder
 }
@@ -247,26 +259,23 @@ func (queryBuilder *QueryBuilder) GetSQL() string {
 func (queryBuilder *QueryBuilder) getSQLForUpdate() string {
 	sql := "UPDATE "
 
-	fromMap := queryBuilder.sqlParts["from"].(map[string]string)
-
-	setMap := queryBuilder.sqlParts["set"].(map[string]string)
+	table := ""
+	for _, v := range queryBuilder.sqlPartsFrom {
+		table = v.table + " " + v.alias
+	}
 
 	sortedKeys := make([]string, 0)
 
-	for k := range setMap {
-		sortedKeys = append(sortedKeys, k)
-	}
-	sort.Strings(sortedKeys)
-
-	table := fromMap["table"] + " " + fromMap["alias"]
+	paramsTemp := make([]interface{}, 0)
 
 	sql += table + " SET "
 
-	paramsTemp := make([]interface{}, 0)
+	for _, v := range queryBuilder.sqlPartsSet {
+		sortedKeys = append(sortedKeys, v.key)
 
-	for _, k := range sortedKeys {
-		sql += k + " = ? ,"
-		paramsTemp = append(paramsTemp, setMap[k])
+		sql += v.key + " = ? ,"
+
+		paramsTemp = append(paramsTemp, v.val)
 	}
 
 	for _, v := range queryBuilder.params {
@@ -277,11 +286,12 @@ func (queryBuilder *QueryBuilder) getSQLForUpdate() string {
 
 	sql = sql[:len(sql)-1]
 
-	if whereStr := queryBuilder.sqlParts["where"].(string); whereStr != "" {
+	if whereStr := queryBuilder.sqlPartsWhere; whereStr != "" {
 		sql += " WHERE " + whereStr
 	}
 
 	return sql
+
 }
 
 // getSQLForJoins returns an join string in SQL.
@@ -292,12 +302,16 @@ func (queryBuilder *QueryBuilder) getSQLForJoins() string {
 		return ""
 	}
 
-	joinType := queryBuilder.sqlParts["join"].(map[string]string)["joinType"]
-	joinTable := queryBuilder.sqlParts["join"].(map[string]string)["joinTable"]
-	joinAlias := queryBuilder.sqlParts["join"].(map[string]string)["joinAlias"]
-	joinCondition := queryBuilder.sqlParts["join"].(map[string]string)["joinCondition"]
+	for _, v := range queryBuilder.sqlPartsJoin {
+		joinType := v.joinType
+		joinTable := v.joinTable
+		joinAlias := v.joinAlias
+		joinCondition := v.joinCondition
 
-	sql += " " + joinType + " JOIN " + joinTable + " " + joinAlias + " ON " + joinCondition
+		sql += " " + joinType + " JOIN " + joinTable + " " + joinAlias + " ON " + joinCondition
+
+		return sql
+	}
 
 	return sql
 }
@@ -306,45 +320,42 @@ func (queryBuilder *QueryBuilder) getSQLForJoins() string {
 func (queryBuilder *QueryBuilder) getFromClauses() string {
 	tableSql := ""
 
-	if fromMap := queryBuilder.sqlParts["from"].(map[string]string); fromMap != nil {
-
-		if tableSql = fromMap["table"]; fromMap["alias"] != "" {
-			tableSql += " " + fromMap["alias"]
-		}
+	for _, v := range queryBuilder.sqlPartsFrom {
+		tableSql = v.table + " " + v.alias
+		return tableSql + queryBuilder.getSQLForJoins()
 	}
 
-	return tableSql + queryBuilder.getSQLForJoins()
+	return tableSql
 }
 
 // getSQLForSelect returns an select string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForSelect() string {
 	sql := "SELECT "
 
-	if selectStr := queryBuilder.sqlParts["select"].(string); selectStr != "" {
+	if selectStr := queryBuilder.sqlPartsSelect; selectStr != "" {
 		sql += selectStr
 	}
 
 	sql += " FROM " + queryBuilder.getFromClauses()
 
-	if whereStr := queryBuilder.sqlParts["where"].(string); whereStr != "" {
+	if whereStr := queryBuilder.sqlPartsWhere; whereStr != "" {
 		sql += " WHERE " + whereStr
 	}
 
-	if groupByStr := queryBuilder.sqlParts["groupBy"].(string); groupByStr != "" {
+	if groupByStr := queryBuilder.sqlPartsGroupBy; groupByStr != "" {
 		sql += " GROUP BY " + groupByStr
 	}
 
-	if havingStr := queryBuilder.sqlParts["having"].(string); havingStr != "" {
+	if havingStr := queryBuilder.sqlPartsHaving; havingStr != "" {
 		sql += " HAVING " + havingStr
 	}
 
 	if queryBuilder.flag == ISSORT {
 		sql += " ORDER BY "
-		orderByMap := queryBuilder.sqlParts["orderBy"].(map[string]string)
-		for sort, order := range orderByMap {
-			sql += sort + " " + order + ","
-		}
 
+		for _, v := range queryBuilder.sqlPartsOrderBy {
+			sql += v.sort + " " + v.order + ","
+		}
 		sql = sql[:len(sql)-1]
 	}
 
@@ -359,12 +370,9 @@ func (queryBuilder *QueryBuilder) getSQLForSelect() string {
 func (queryBuilder *QueryBuilder) getSQLForDelete() string {
 	sql := "DELETE "
 
-	if fromMap := queryBuilder.sqlParts["from"].(map[string]string); fromMap != nil {
-		tableSql := fromMap["table"]
-
-		sql += " FROM " + tableSql
-
-		if whereStr := queryBuilder.sqlParts["where"].(string); whereStr != "" {
+	for _, v := range queryBuilder.sqlPartsFrom {
+		sql += " FROM " + v.table
+		if whereStr := queryBuilder.sqlPartsWhere; whereStr != "" {
 			sql += " WHERE " + whereStr
 		}
 
@@ -377,28 +385,25 @@ func (queryBuilder *QueryBuilder) getSQLForDelete() string {
 // getSQLForInsert returns an insert string in SQL.
 func (queryBuilder *QueryBuilder) getSQLForInsert() string {
 	sql := "INSERT INTO "
-	if fromMap := queryBuilder.sqlParts["from"].(map[string]string); fromMap != nil {
 
-		tableSql := fromMap["table"]
+	for _, v := range queryBuilder.sqlPartsFrom {
+		tableSql := v.table
 		sql += tableSql + " ("
 
-		valuesMap := queryBuilder.sqlParts["values"].(map[string]string)
-
 		sortedKeys := make([]string, 0)
-
-		for k := range valuesMap {
-			sortedKeys = append(sortedKeys, k)
-		}
-		sort.Strings(sortedKeys)
 
 		values := ""
 
 		params := make([]interface{}, 0)
 
-		for _, k := range sortedKeys {
-			sql += k + ","
+		for _, v := range queryBuilder.sqlPartsValues {
+			sortedKeys = append(sortedKeys, v.key)
+
+			sql += v.key + ","
 			values += "?,"
-			params = append(params, valuesMap[k])
+
+			params = append(params, v.val)
+
 		}
 
 		queryBuilder.params = params
@@ -457,8 +462,8 @@ func getRowsMap(rows *sql.Rows) map[int]map[string]string {
 	values := make([]interface{}, count)
 	columnPointers := make([]interface{}, count)
 
-	result := map[int]map[string]string{}
 	resultId := 0
+	result := map[int]map[string]string{}
 
 	for rows.Next() {
 		for i := range columns {
@@ -516,38 +521,17 @@ func (queryBuilder *QueryBuilder) QueryAndGetMap() (map[int]map[string]string, e
 
 // prepareAndExecute creates a prepared statement for later queries or executions.
 func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
-
-	if Tx := queryBuilder.database.transaction; Tx != nil {
-		stmt, err := Tx.Prepare(queryBuilder.GetSQL())
-
-		queryBuilder.State = stmt
-
-		if err != nil {
-			panic(err)
-		}
-		res, err := stmt.Exec(queryBuilder.params...)
-		if err != nil {
-			panic(err)
-		}
-
-		return res
+	stmt, err := queryBuilder.database.Prepare(queryBuilder.GetSQL())
+	if err != nil {
+		panic(err)
 	}
 
-	if queryBuilder.database.transaction == nil {
-		stmt, err := queryBuilder.database.Prepare(queryBuilder.GetSQL())
-		if err != nil {
-			panic(err)
-		}
-		queryBuilder.State = stmt
-
-		res, err := stmt.Exec(queryBuilder.params...)
-		if err != nil {
-			panic(err)
-		}
-		return res
+	fmt.Println(queryBuilder.params...)
+	res, err := stmt.Exec(queryBuilder.params...)
+	if err != nil {
+		panic(err)
 	}
-
-	return nil
+	return res
 }
 
 // PrepareAndExecute creates a prepared statement for later queries or executions.
@@ -588,8 +572,5 @@ func (queryBuilder *QueryBuilder) Delete(table string) *QueryBuilder {
 
 // setFromWrap wraps sqlParts `from`
 func (queryBuilder *QueryBuilder) setFromWrap(table string, alias string) {
-	queryBuilder.sqlParts["from"] = map[string]string{
-		"table": table,
-		"alias": alias,
-	}
+	queryBuilder.sqlPartsFrom = append(queryBuilder.sqlPartsFrom, From{table, alias})
 }
