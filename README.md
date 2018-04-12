@@ -3,7 +3,7 @@ Database Abstraction Layer (dbal) for go (now only support mysql)
 
 ## Motivation
 
-I wanted a DBAL that ***no ORM***、***no Reflect***, support ***SQL builder***  following good practices and well tested code.
+I wanted a DBAL that ***No ORM***、***No Reflect***、***Concurrency Save***, support ***SQL builder***  following good practices and well tested code.
 
 ## Requirements
 
