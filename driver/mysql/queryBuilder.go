@@ -29,6 +29,7 @@ type (
 	From struct {
 		table, alias string
 	}
+
 	orderBy struct {
 		sort, order string
 	}
@@ -47,22 +48,15 @@ type (
 
 	//QueryBuilder defined a SQL query builder.
 	QueryBuilder struct {
-		firstResult     int
-		maxResults      int
-		queryType       int
-		database        *Database
-		params          []interface{}
-		flag            string
-		sql             string
-		sqlPartsSelect  string
-		sqlPartsWhere   string
-		sqlPartsFrom    []From
-		sqlPartsGroupBy string
-		sqlPartsHaving  string
-		sqlPartsOrderBy []orderBy
-		sqlPartsValues  []valuesSqlParts
-		sqlPartsSet     []setSqlParts
-		sqlPartsJoin    []joinSqlParts
+		firstResult, maxResults, queryType                                        int
+		flag, sql, sqlPartsSelect, sqlPartsWhere, sqlPartsGroupBy, sqlPartsHaving string
+		database                                                                  *Database
+		params                                                                    []interface{}
+		sqlPartsFrom                                                              []From
+		sqlPartsOrderBy                                                           []orderBy
+		sqlPartsValues                                                            []valuesSqlParts
+		sqlPartsSet                                                               []setSqlParts
+		sqlPartsJoin                                                              []joinSqlParts
 	}
 )
 

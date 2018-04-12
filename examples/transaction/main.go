@@ -30,8 +30,7 @@ func main() {
 	queryBuilder.Update("userinfo", "u").Set("u.username", "joe").Set("u.departname", "tecxx").Where("u.uid=?").
 		SetParam(4)
 
-
-	res ,err := tx.PrepareAndExecute(queryBuilder)
+	res, err := tx.PrepareAndExecute(queryBuilder)
 
 	if err != nil {
 		log.Fatalln(err)
