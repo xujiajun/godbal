@@ -38,12 +38,16 @@ func main() {
 		panic(err)
 	}
 
+	err = database.Ping()
+	if err != nil {
+		panic(err)
+	}
+
 	queryBuilder := mysql.NewQueryBuilder(database)
 	sql := queryBuilder.Select("uid,username,price,flag").From("userinfo", "").SetFirstResult(0).
 		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
 
-	fmt.Print(sql) // SELECT uid,username,price,flag FROM userinfo ORDER BY uid DESC LIMIT 0,3
-	fmt.Print("\n")
+	fmt.Println(sql) // SELECT uid,username,price,flag FROM userinfo ORDER BY uid DESC LIMIT 0,3
 
 	rows, _ := queryBuilder.Query()
 
