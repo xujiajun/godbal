@@ -525,7 +525,6 @@ func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
 		panic(err)
 	}
 
-	fmt.Println(queryBuilder.params...)
 	res, err := stmt.Exec(queryBuilder.params...)
 	if err != nil {
 		panic(err)
