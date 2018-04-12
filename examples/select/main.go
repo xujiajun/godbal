@@ -14,6 +14,11 @@ func main() {
 		panic(err)
 	}
 
+	err = database.Ping()
+	if err != nil {
+		panic(err)
+	}
+
 	queryBuilder := mysql.NewQueryBuilder(database)
 	sql := queryBuilder.Select("uid,username,price,flag").From("userinfo", "").SetFirstResult(0).
 		SetMaxResults(5).OrderBy("uid", "DESC").OrderBy("username", "DESC").GetSQL()

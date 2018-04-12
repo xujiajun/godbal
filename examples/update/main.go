@@ -8,7 +8,17 @@ import (
 )
 
 func main() {
-	database, _ := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+	database, err := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = database.Ping()
+	if err != nil {
+		panic(err)
+	}
+
 	queryBuilder := mysql.NewQueryBuilder(database)
 
 	rowsAffected, _ := queryBuilder.Update("userinfo", "u").SetParam(4).Set("u.username", "joe11").Set("u.flag", "1").Where("u.uid=?").PrepareAndExecute()

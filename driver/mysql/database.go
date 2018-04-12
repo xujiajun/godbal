@@ -38,14 +38,8 @@ func (database *Database) GetDB() *sql.DB {
 
 // Open returns mysql driver database
 func (database *Database) Open() (*Database, error) {
-
 	db, err := sql.Open(driver, database.dataSourceName)
 	database.db = db
-
-	err = database.Ping()
-	if err != nil {
-		panic(err)
-	}
 
 	return database, err
 }

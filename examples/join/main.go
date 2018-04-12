@@ -9,7 +9,16 @@ import (
 )
 
 func main() {
-	database, _ := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+	database, err := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = database.Ping()
+	if err != nil {
+		panic(err)
+	}
 
 	//queryBuilder := mysql.NewQueryBuilder(database)
 	//rows, _ := queryBuilder.Select("u.uid,u.username,p.address").From("userinfo", "u").SetFirstResult(0).
