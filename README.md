@@ -49,7 +49,7 @@ func main() {
 
 	fmt.Println(sql) // SELECT uid,username,price,flag FROM userinfo ORDER BY uid DESC LIMIT 0,3
 
-	rows, _ := queryBuilder.Query()
+	rows, _ := queryBuilder.QueryAndGetMap()
 
 	jsonString, _ := json.Marshal(&rows)
 	fmt.Print(string(jsonString)) 
