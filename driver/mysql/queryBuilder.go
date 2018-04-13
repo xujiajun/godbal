@@ -56,6 +56,7 @@ type (
 		firstResult, maxResults, queryType                                        int
 		flag, sql, sqlPartsSelect, sqlPartsWhere, sqlPartsGroupBy, sqlPartsHaving string
 		database                                                                  *Database
+		State                                                                     *sql.Stmt
 		params                                                                    []interface{}
 		sqlPartsFrom                                                              []FromSqlParts
 		sqlPartsOrderBy                                                           []OrderBySqlParts
@@ -524,7 +525,7 @@ func (queryBuilder *QueryBuilder) prepareAndExecute() sql.Result {
 	if err != nil {
 		panic(err)
 	}
-
+	queryBuilder.State = stmt
 	res, err := stmt.Exec(queryBuilder.params...)
 	if err != nil {
 		panic(err)
