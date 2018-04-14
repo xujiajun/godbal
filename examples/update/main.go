@@ -21,6 +21,6 @@ func main() {
 
 	queryBuilder := mysql.NewQueryBuilder(database)
 
-	rowsAffected, _ := queryBuilder.Update("userinfo", "u").SetParam(4).Set("u.username", "joe11").Set("u.flag", "1").Where("u.uid=?").PrepareAndExecute()
+	rowsAffected, _ := queryBuilder.Update("userinfo", "u").SetParam(4).Set("u.username", "joe11").Set("u.flag", 0).Set("price",1110.01).Where("u.uid=?").PrepareAndExecute()
 	fmt.Println(rowsAffected)
 }

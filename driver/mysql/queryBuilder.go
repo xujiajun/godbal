@@ -43,12 +43,14 @@ type (
 
 	// ValuesSqlParts records key, val
 	ValuesSqlParts struct {
-		key, val string
+		key string
+		val interface{}
 	}
 
 	// SetSqlParts records key, val
 	SetSqlParts struct {
-		key, val string
+		key string
+		val interface{}
 	}
 
 	//QueryBuilder defined a SQL query builder.
@@ -115,14 +117,14 @@ func (queryBuilder *QueryBuilder) Update(table string, alias string) *QueryBuild
 }
 
 // Set returns QueryBuilder that sets a new value for a column in a bulk update query.
-func (queryBuilder *QueryBuilder) Set(key string, val string) *QueryBuilder {
+func (queryBuilder *QueryBuilder) Set(key string, val interface{}) *QueryBuilder {
 	queryBuilder.sqlPartsSet = append(queryBuilder.sqlPartsSet, SetSqlParts{key: key, val: val})
 
 	return queryBuilder
 }
 
 // Value returns QueryBuilder that sets a new value for a column in a bulk insert query.
-func (queryBuilder *QueryBuilder) Value(key string, val string) *QueryBuilder {
+func (queryBuilder *QueryBuilder) Value(key string, val interface{}) *QueryBuilder {
 	queryBuilder.sqlPartsValues = append(queryBuilder.sqlPartsValues, ValuesSqlParts{key: key, val: val})
 
 	return queryBuilder
