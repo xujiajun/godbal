@@ -19,7 +19,42 @@ go get github.com/xujiajun/godbal
 
 * mysql
 
+
 ## Getting Started
+
+Godbal helps you build SQL queries from composable parts easily:
+
+```
+database, _ := godbal.NewMysql("root:123@tcp(127.0.0.1:3306)/test?charset=utf8").Open()
+queryBuilder := mysql.NewQueryBuilder(database)
+	sql := queryBuilder.Select("uid,username,price,flag").From("userinfo", "").SetFirstResult(0).
+		SetMaxResults(3).OrderBy("uid", "DESC").GetSQL()
+
+	fmt.Println(sql) 
+```
+
+Output:
+
+```
+SELECT uid,username,price,flag FROM userinfo ORDER BY uid DESC LIMIT 0,3
+```
+
+Godbal helps you get result easily:
+
+```
+rows, _ := queryBuilder.QueryAndGetMap()
+jsonString, _ := json.Marshal(&rows)
+fmt.Print(string(jsonString)) 
+
+```
+
+Output like:
+
+```
+ {"0":{"flag":"1","price":"111.00","uid":"6","username":"johnny2"},"1":{"flag":"1","price":"111.00","uid":"5","username":"johnny2"},"2":{"flag":"0","price":"123.99","uid":"4","username":"joe"}}
+```
+
+### Full example:
 
 ```
 package main
@@ -58,7 +93,7 @@ func main() {
 
 ```
 
-## Examples
+## More examples
 
 * [select](https://github.com/xujiajun/godbal/blob/master/examples/select/main.go)
 
