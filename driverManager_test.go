@@ -1,9 +1,10 @@
 package godbal_test
 
 import (
+	"testing"
+
 	"github.com/xujiajun/godbal"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
-	"testing"
 )
 
 const (

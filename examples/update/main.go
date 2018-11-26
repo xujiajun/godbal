@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/xujiajun/godbal"
 	"github.com/xujiajun/godbal/driver/mysql"
