@@ -1,12 +1,13 @@
 package mysql_test
 
 import (
-	"github.com/xujiajun/godbal"
-	"github.com/xujiajun/godbal/driver/mysql"
-	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"testing"
 	//"fmt"
 	//"encoding/json"
+
+	"github.com/xujiajun/godbal"
+	"github.com/xujiajun/godbal/driver/mysql"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
 const (
